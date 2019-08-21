@@ -15,9 +15,6 @@ namespace ThermoRawFileParser.Writer
 
         private const string PositivePolarity = "+";
         private const string NegativePolarity = "-";
-        private const double PrecursorMzDelta = 0.0001;
-        private const double DefaultIsolationWindowLowerOffset = 1.5;
-        private const double DefaultIsolationWindowUpperOffset = 2.5;
 
         // Precursor scan number for reference in the precursor element of an MS2 spectrum
         private int _precursorScanNumber;
@@ -32,8 +29,24 @@ namespace ThermoRawFileParser.Writer
             ConfigureWriter(".mgf");
             using (Writer)
             {
+                Log.Info("Processing " + (lastScanNumber - firstScanNumber + 1) + " scans");
+
+                var lastScanProgress = 0;
                 for (var scanNumber = firstScanNumber; scanNumber <= lastScanNumber; scanNumber++)
                 {
+                    if (ParseInput.LogFormat == LogFormat.DEFAULT)
+                    {
+                        var scanProgress = (int) ((double) scanNumber / (lastScanNumber - firstScanNumber + 1) * 100);
+                        if (scanProgress % ProgressPercentageStep == 0)
+                        {
+                            if (scanProgress != lastScanProgress)
+                            {
+                                Console.Write("" + scanProgress + "% ");
+                                lastScanProgress = scanProgress;
+                            }
+                        }
+                    }
+
                     // Get each scan from the RAW file
                     var scan = Scan.FromFile(rawFile, scanNumber);
 
@@ -88,18 +101,21 @@ namespace ThermoRawFileParser.Writer
                             // trailer extra data list
                             var trailerData = rawFile.GetTrailerExtraInformation(scanNumber);
                             int? charge = null;
-                            double? monoisotopicMass = null;
+                            double? monoisotopicMz = null;
                             double? isolationWidth = null;
                             for (var i = 0; i < trailerData.Length; i++)
                             {
                                 if (trailerData.Labels[i] == "Charge State:")
                                 {
-                                    charge = Convert.ToInt32(trailerData.Values[i]);
+                                    if (Convert.ToInt32(trailerData.Values[i]) > 0)
+                                    {
+                                        charge = Convert.ToInt32(trailerData.Values[i]);
+                                    }
                                 }
 
                                 if (trailerData.Labels[i] == "Monoisotopic M/Z:")
                                 {
-                                    monoisotopicMass = double.Parse(trailerData.Values[i], NumberStyles.Any,
+                                    monoisotopicMz = double.Parse(trailerData.Values[i], NumberStyles.Any,
                                         CultureInfo.CurrentCulture);
                                 }
 
@@ -112,45 +128,32 @@ namespace ThermoRawFileParser.Writer
 
                             if (reaction != null)
                             {
-                                var truePrecursorMass = reaction.PrecursorMass;
+                                var selectedIonMz =
+                                    CalculateSelectedIonMz(reaction, monoisotopicMz, isolationWidth);
 
-                                // take isolation width from the reaction if no value was found in the trailer data
-                                if (isolationWidth == null || isolationWidth < ZeroDelta)
+                                if (!ParseInput.PrecursorIntensity)
                                 {
-                                    isolationWidth = reaction.IsolationWidth;
+                                    Writer.WriteLine("PEPMASS=" +
+                                                     selectedIonMz.ToString(CultureInfo.InvariantCulture));
                                 }
-
-                                isolationWidth = isolationWidth / 2;
-
-                                if (monoisotopicMass != null && monoisotopicMass > ZeroDelta
-                                                             && Math.Abs(
-                                                                 reaction.PrecursorMass - monoisotopicMass.Value) >
-                                                             PrecursorMzDelta)
+                                else
                                 {
-                                    truePrecursorMass = monoisotopicMass.Value;
-
-                                    // check if the monoisotopic mass lies in the precursor mass isolation window
-                                    // otherwise take the precursor mass                                    
-                                    if (isolationWidth <= 2.0)
+                                    var precursorPeakIntensity = CalculatePrecursorPeakIntensity(rawFile,
+                                        _precursorScanNumber, reaction.PrecursorMass);
+                                    if (precursorPeakIntensity != null)
                                     {
-                                        if ((truePrecursorMass <
-                                             (reaction.PrecursorMass - DefaultIsolationWindowLowerOffset * 2)) ||
-                                            (truePrecursorMass >
-                                             (reaction.PrecursorMass + DefaultIsolationWindowUpperOffset)))
-                                        {
-                                            truePrecursorMass = reaction.PrecursorMass;
-                                        }
+                                        Writer.WriteLine("PEPMASS=" +
+                                                         selectedIonMz.ToString(CultureInfo.InvariantCulture) +
+                                                         " " +
+                                                         precursorPeakIntensity.Value.ToString(CultureInfo
+                                                             .InvariantCulture));
                                     }
-                                    else if ((truePrecursorMass < (reaction.PrecursorMass - isolationWidth)) ||
-                                             (truePrecursorMass > (reaction.PrecursorMass + isolationWidth)))
+                                    else
                                     {
-                                        truePrecursorMass = reaction.PrecursorMass;
+                                        Writer.WriteLine("PEPMASS=" +
+                                                         selectedIonMz.ToString(CultureInfo.InvariantCulture));
                                     }
                                 }
-
-                                Writer.WriteLine("PEPMASS=" +
-                                                 truePrecursorMass.ToString("0.0000000",
-                                                     CultureInfo.InvariantCulture));
                             }
 
                             // charge
@@ -183,7 +186,7 @@ namespace ThermoRawFileParser.Writer
                                             centroidStream.Masses[i].ToString("0.0000000",
                                                 CultureInfo.InvariantCulture)
                                             + " "
-                                            + centroidStream.Intensities[i].ToString("0.0000000",
+                                            + centroidStream.Intensities[i].ToString("0.0000000000",
                                                 CultureInfo.InvariantCulture));
                                     }
                                 }
@@ -210,8 +213,15 @@ namespace ThermoRawFileParser.Writer
 
                             Writer.WriteLine("END IONS");
 
+                            Log.Debug("Spectrum written to file -- SCAN " + scanNumber);
+
                             break;
                     }
+                }
+
+                if (ParseInput.LogFormat == LogFormat.DEFAULT)
+                {
+                    Console.WriteLine();
                 }
             }
         }
