@@ -11,8 +11,8 @@ namespace ThermoRawFileParser.Writer
 {
     public class MetadataWriter
     {
-        private static readonly ILog Log =
-            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        /*private static readonly ILog Log =
+            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);*/
 
         private readonly string _outputDirectory;
         private readonly string _metadataFileName;
@@ -194,7 +194,7 @@ namespace ThermoRawFileParser.Writer
                         }
                         catch (ArgumentOutOfRangeException)
                         {
-                            Log.Warn("No reaction found for scan " + scanNumber);
+                            //Log.Warn("No reaction found for scan " + scanNumber);
                         }
 
                         // trailer extra data list

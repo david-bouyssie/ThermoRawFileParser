@@ -32,6 +32,11 @@ namespace ThermoRawFileParser
         }
 
         /// <summary>
+        /// Specifiy the use of an in-memory stream writer.
+        /// </summary>
+        public bool UseInMemoryWriter { get; set; }
+
+        /// <summary>
         /// The output directory.
         /// </summary>
         public string OutputDirectory { get; set; }

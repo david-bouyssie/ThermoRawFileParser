@@ -11,8 +11,8 @@ namespace ThermoRawFileParser.Writer
 {
     public abstract class SpectrumWriter : ISpectrumWriter
     {
-        private static readonly ILog Log =
-            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        /*private static readonly ILog Log =
+            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);*/
 
         private const string MsFilter = "ms";
         private const double Tolerance = 0.01;
@@ -37,6 +37,8 @@ namespace ThermoRawFileParser.Writer
         /// </summary>
         protected StreamWriter Writer;
 
+        protected MemoryStream WriterMemStream;
+
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -47,7 +49,7 @@ namespace ThermoRawFileParser.Writer
         }
 
         /// <inheritdoc />
-        public abstract void Write(IRawDataPlus rawFile, int firstScanNumber, int lastScanNumber);
+        public abstract void Write(int firstScanNumber, int lastScanNumber);
 
         /// <summary>
         /// Configure the output writer
@@ -55,7 +57,14 @@ namespace ThermoRawFileParser.Writer
         /// <param name="extension">The extension of the output file</param>
         protected void ConfigureWriter(string extension)
         {
-            if (ParseInput.OutputFile == null)
+
+            if (ParseInput.UseInMemoryWriter)
+            {
+                this.WriterMemStream = new MemoryStream();
+                Writer = new StreamWriter(this.WriterMemStream);
+                //StringWriter = new StringWriter();
+            }
+            else if (ParseInput.OutputFile == null)
             {
                 var fullExtension = ParseInput.Gzip ? extension + ".gzip" : extension;
                 if (!ParseInput.Gzip || ParseInput.OutputFormat == OutputFormat.IndexMzML)
@@ -162,7 +171,7 @@ namespace ThermoRawFileParser.Writer
             }
             catch (ArgumentOutOfRangeException)
             {
-                Log.Warn("No reaction found for scan " + scanNumber);
+                //Log.Warn("No reaction found for scan " + scanNumber);
             }
 
             return reaction;

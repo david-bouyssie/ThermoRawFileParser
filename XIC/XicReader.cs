@@ -12,8 +12,8 @@ namespace ThermoRawFileParser.XIC
 {
     public class XicReader
     {
-        private static readonly ILog Log =
-            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        /*private static readonly ILog Log =
+            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);*/
 
         private const string MsFilter = "ms";
 
@@ -124,14 +124,14 @@ namespace ThermoRawFileParser.XIC
                                 (Math.Abs(data.PositionsArray[0][0] - startTime) < 0.001 ||
                                  Math.Abs(data.PositionsArray[0][0] - endTime) < 0.001))
                             {
-                                Log.Warn(
-                                    $"Only the minimum or maximum retention time was returned. This is an indication that the provided retention time range [{xicUnit.Meta.RtStart}-{xicUnit.Meta.RtEnd}] lies outside the max. window [{startTime}-{endTime}]");
+                                //Log.Warn(
+                                //    $"Only the minimum or maximum retention time was returned. This is an indication that the provided retention time range [{xicUnit.Meta.RtStart}-{xicUnit.Meta.RtEnd}] lies outside the max. window [{startTime}-{endTime}]");
                             }
                         }
                         else
                         {
-                            Log.Warn(
-                                $"No scans found in retention time range [{xicUnit.Meta.RtStart}-{xicUnit.Meta.RtEnd}]. This is an indication that the provided retention time window lies outside the max. window [{startTime}-{endTime}]");
+                            //Log.Warn(
+                            //    $"No scans found in retention time range [{xicUnit.Meta.RtStart}-{xicUnit.Meta.RtEnd}]. This is an indication that the provided retention time window lies outside the max. window [{startTime}-{endTime}]");
                         }
                     }
                     else
@@ -171,11 +171,11 @@ namespace ThermoRawFileParser.XIC
             }
             catch (InvalidFilterFormatException ex)
             {
-                Log.Warn($"Invalid filter string {settings.Filter}");
+                //Log.Warn($"Invalid filter string {settings.Filter}");
             }
             catch (InvalidFilterCriteriaException ex)
             {
-                Log.Warn($"Invalid filter string {settings.Filter}");
+                //Log.Warn($"Invalid filter string {settings.Filter}");
             }
 
             return data;

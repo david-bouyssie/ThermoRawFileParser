@@ -14,8 +14,8 @@ namespace ThermoRawFileParser
 {
     public static class MainClass
     {
-        private static readonly ILog Log =
-            LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        /*private static readonly ILog Log =
+            LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);*/
 
         public const string Version = "1.2.3";
 
@@ -213,12 +213,12 @@ namespace ThermoRawFileParser
             {
                 if (ex is RawFileParserException)
                 {
-                    Log.Error(ex.Message);
+                    //Log.Error(ex.Message);
                 }
                 else
                 {
-                    Log.Error("An unexpected error occured:");
-                    Log.Error(ex.ToString());
+                    //Log.Error("An unexpected error occured:");
+                    //Log.Error(ex.ToString());
                 }
             }
             finally
@@ -329,12 +329,12 @@ namespace ThermoRawFileParser
             {
                 if (ex is RawFileParserException)
                 {
-                    Log.Error(ex.Message);
+                    //Log.Error(ex.Message);
                 }
                 else
                 {
-                    Log.Error("An unexpected error occured:");
-                    Log.Error(ex.ToString());
+                    //Log.Error("An unexpected error occured:");
+                    //Log.Error(ex.ToString());
                 }
             }
             finally
@@ -701,26 +701,26 @@ namespace ThermoRawFileParser
             }
             catch (UnauthorizedAccessException ex)
             {
-                Log.Error(!ex.Message.IsNullOrEmpty()
+                /*Log.Error(!ex.Message.IsNullOrEmpty()
                     ? ex.Message
-                    : "Attempting to write to an unauthorized location.");
+                    : "Attempting to write to an unauthorized location.");*/
             }
             catch (Amazon.S3.AmazonS3Exception ex)
             {
-                Log.Error(!ex.Message.IsNullOrEmpty()
+                /*Log.Error(!ex.Message.IsNullOrEmpty()
                     ? "An Amazon S3 exception occured: " + ex.Message
-                    : "An Amazon S3 exception occured: " + ex);
+                    : "An Amazon S3 exception occured: " + ex);*/
             }
             catch (Exception ex)
             {
                 if (ex is RawFileParserException)
                 {
-                    Log.Error(ex.Message);
+                    //Log.Error(ex.Message);
                 }
                 else
                 {
-                    Log.Error("An unexpected error occured:");
-                    Log.Error(ex.ToString());
+                    //Log.Error("An unexpected error occured:");
+                    //Log.Error(ex.ToString());
                 }
             }
             finally

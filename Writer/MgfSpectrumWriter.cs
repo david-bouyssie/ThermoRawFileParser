@@ -10,25 +10,28 @@ namespace ThermoRawFileParser.Writer
 {
     public class MgfSpectrumWriter : SpectrumWriter
     {
-        private static readonly ILog Log =
-            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        /*private static readonly ILog Log =
+            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);*/
+
+        private IRawDataPlus _rawFile;
 
         private const string PositivePolarity = "+";
         private const string NegativePolarity = "-";
 
         // Precursor scan number for reference in the precursor element of an MS2 spectrum
 
-        public MgfSpectrumWriter(ParseInput parseInput) : base(parseInput)
+        public MgfSpectrumWriter(IRawDataPlus rawFile, ParseInput parseInput) : base(parseInput)
         {
+            this._rawFile = rawFile;
         }
 
         /// <inheritdoc />       
-        public override void Write(IRawDataPlus rawFile, int firstScanNumber, int lastScanNumber)
+        public override void Write(int firstScanNumber, int lastScanNumber)
         {
             ConfigureWriter(".mgf");
             using (Writer)
             {
-                Log.Info("Processing " + (lastScanNumber - firstScanNumber + 1) + " scans");
+                //Log.Info("Processing " + (lastScanNumber - firstScanNumber + 1) + " scans");
 
                 var lastScanProgress = 0;
                 for (var scanNumber = firstScanNumber; scanNumber <= lastScanNumber; scanNumber++)
@@ -47,17 +50,17 @@ namespace ThermoRawFileParser.Writer
                     }
 
                     // Get each scan from the RAW file
-                    var scan = Scan.FromFile(rawFile, scanNumber);
+                    var scan = Scan.FromFile(_rawFile, scanNumber);
 
                     // Check to see if the RAW file contains label (high-res) data and if it is present
                     // then look for any data that is out of order
-                    var time = rawFile.RetentionTimeFromScanNumber(scanNumber);
+                    var time = _rawFile.RetentionTimeFromScanNumber(scanNumber);
 
                     // Get the scan filter for this scan number
-                    var scanFilter = rawFile.GetFilterForScanNumber(scanNumber);
+                    var scanFilter = _rawFile.GetFilterForScanNumber(scanNumber);
 
                     // Get the scan event for this scan number
-                    var scanEvent = rawFile.GetScanEventForScanNumber(scanNumber);
+                    var scanEvent = _rawFile.GetScanEventForScanNumber(scanNumber);
 
                     // don't include MS1 spectra
                     if (scanFilter.MSOrder != MSOrderType.Ms)
@@ -71,7 +74,7 @@ namespace ThermoRawFileParser.Writer
                             $"RTINSECONDS={(time * 60).ToString(CultureInfo.InvariantCulture)}");
 
                         // trailer extra data list
-                        var trailerData = rawFile.GetTrailerExtraInformation(scanNumber);
+                        var trailerData = _rawFile.GetTrailerExtraInformation(scanNumber);
                         int? charge = null;
                         double? monoisotopicMz = null;
                         double? isolationWidth = null;
@@ -174,7 +177,7 @@ namespace ThermoRawFileParser.Writer
 
                         Writer.WriteLine("END IONS");
 
-                        Log.Debug("Spectrum written to file -- SCAN " + scanNumber);
+                        //Log.Debug("Spectrum written to file -- SCAN " + scanNumber);
                     }
                 }
 

@@ -12,8 +12,8 @@ namespace ThermoRawFileParser.Query
 {
     public class ProxiSpectrumReader
     {
-        private static readonly ILog Log =
-            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        /*private static readonly ILog Log =
+            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);*/
 
         private readonly QueryParameters queryParameters;
 

@@ -16,8 +16,8 @@ namespace ThermoRawFileParser.Writer
 {
     public class ParquetSpectrumWriter : SpectrumWriter
     {
-        private static readonly ILog Log =
-            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        /*private static readonly ILog Log =
+            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);*/
 
         private IRawDataPlus _rawFile;
 
@@ -28,15 +28,16 @@ namespace ThermoRawFileParser.Writer
         private readonly Dictionary<IonizationModeType, CVParamType> _ionizationTypes =
             new Dictionary<IonizationModeType, CVParamType>();
 
-        public ParquetSpectrumWriter(ParseInput parseInput) : base(parseInput)
-        {
-        }
-
-        public override void Write(IRawDataPlus rawFile, int firstScanNumber, int lastScanNumber)
+        public ParquetSpectrumWriter(IRawDataPlus rawFile, ParseInput parseInput) : base(parseInput)
         {
             _rawFile = rawFile;
+        }
+
+        public override void Write(int firstScanNumber, int lastScanNumber)
+        {
+            
             List<PScan> pScans = new List<PScan>();
-            WritePScans(ParseInput.OutputDirectory, rawFile.FileName, rawFile, pScans);
+            WritePScans(ParseInput.OutputDirectory, _rawFile.FileName, _rawFile, pScans);
         }
 
         private static void WritePScans(string outputDirectory, string fileName,
