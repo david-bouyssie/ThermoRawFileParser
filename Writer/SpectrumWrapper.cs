@@ -31,17 +31,17 @@ namespace ThermoRawFileParser.Writer
 
         public int getPeaksCount()
         {
-            return Masses.Length;
+            return Masses == null ? 0 : Masses.Length;
         }
 
         public double GetMzValue(int pos)
         {
-            return Masses[pos];
+            return Masses == null ? -1.0 : Masses[pos];
         }
 
         public double GetIntensityValue(int pos)
         {
-            return Intensities[pos];
+            return Masses == null ? -1.0 : Intensities[pos];
         }
 
         //public void InitStore(string location)
@@ -66,6 +66,8 @@ namespace ThermoRawFileParser.Writer
 
         public void CopyMzListToPointer(long ptrAddress)
         {
+            if (Masses == null) return;
+
             unsafe
             {
                 IntPtr ptrAddressAsInt = new IntPtr(ptrAddress);
@@ -86,6 +88,8 @@ namespace ThermoRawFileParser.Writer
 
         public void CopyIntensityListToPointer(long ptrAddress)
         {
+            if (Intensities == null) return;
+
             unsafe
             {
                 IntPtr ptrAddressAsInt = new IntPtr(ptrAddress);
@@ -105,6 +109,8 @@ namespace ThermoRawFileParser.Writer
 
         public void CopyDataToPointers(long mzPtrAddress, long intensityPtrAddress)
         {
+            if (Masses == null || Intensities == null) return;
+
             unsafe
             {
                 IntPtr mzPtrAddressAsInt = new IntPtr(mzPtrAddress);
