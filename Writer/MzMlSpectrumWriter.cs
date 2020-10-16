@@ -84,14 +84,57 @@ namespace ThermoRawFileParser.Writer
             return _spectrumWrapper;
         }
 
-        public string GetInMemoryStreamAsString()
+        private MemoryStream _FlushWriterThenGetInMemoryStream()
         {
             if (!ParseInput.UseInMemoryWriter || this.WriterMemStream == null) return null;
             else
             {
                 this._writer.Flush();
                 this.WriterMemStream.Flush();
-                return Encoding.UTF8.GetString(this.WriterMemStream.ToArray(), 0, (int)this.WriterMemStream.Length);
+                return this.WriterMemStream;
+            }
+        }
+
+        public string GetInMemoryStreamAsString()
+        {
+            MemoryStream stream = this._FlushWriterThenGetInMemoryStream();
+            if (stream == null) return null;
+            else
+            {
+                return Encoding.UTF8.GetString(stream.ToArray(), 0, (int)stream.Length);
+            }
+        }
+
+        public int FlushWriterThenGetXmlStreamLength()
+        {
+            MemoryStream stream = this._FlushWriterThenGetInMemoryStream();
+            if (stream == null) return 0;
+            else return (int)stream.Length;
+        }
+
+        // The pointer has to be correctly allocated (call getInMemoryStreamLength beforehand)
+        public void CopyXmlStreamToPointers(long ptrAddress)
+        {
+            MemoryStream stream = this.WriterMemStream;
+            byte[] xmlChunkAsBytes = stream.ToArray();
+            int nBytes = xmlChunkAsBytes.Length;
+            if (stream.Length != nBytes)
+            {
+                throw new Exception("byte array length differs from memory stream length");
+            }
+
+            unsafe
+            {
+                IntPtr ptrAddressAsInt = new IntPtr(ptrAddress);
+                byte* bytePtr = (byte*)ptrAddressAsInt.ToPointer();
+
+                int byteIdx = 0;
+
+                while (byteIdx < nBytes)
+                {
+                    bytePtr[byteIdx] = xmlChunkAsBytes[byteIdx];
+                    byteIdx++;
+                }
             }
         }
 
